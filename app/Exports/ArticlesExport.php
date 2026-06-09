@@ -15,7 +15,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 class ArticlesExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 {
     public function __construct(
-        private readonly int $journalId,
+        private readonly ?int $journalId = null,
+        private readonly ?int $pointOfSaleId = null,
     ) {}
 
     public function title(): string
@@ -25,7 +26,7 @@ class ArticlesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
 
     public function query()
     {
-        return InvoiceItem::selectRaw('
+        $q = InvoiceItem::selectRaw('
                 invoice_items.name,
                 invoice_items.tax_group,
                 SUM(invoice_items.qty)   AS total_qty,
@@ -33,9 +34,23 @@ class ArticlesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
                 SUM(invoice_items.total) AS total_revenue
             ')
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
-            ->where('invoices.journal_id', $this->journalId)
-            ->where('invoices.type', 'sale')
-            ->groupBy('invoice_items.name', 'invoice_items.tax_group')
+            ->where('invoices.type', 'sale');
+
+        if ($this->journalId) {
+            $q->where('invoices.journal_id', $this->journalId);
+        } elseif ($this->pointOfSaleId) {
+            $q->whereIn('invoices.journal_id', function ($query) {
+                $query->select('id')
+                    ->from('journals')
+                    ->whereIn('device_id', function ($deviceQuery) {
+                        $deviceQuery->select('id')
+                            ->from('devices')
+                            ->where('point_of_sale_id', $this->pointOfSaleId);
+                    });
+            });
+        }
+
+        return $q->groupBy('invoice_items.name', 'invoice_items.tax_group')
             ->orderByDesc('total_revenue');
     }
 

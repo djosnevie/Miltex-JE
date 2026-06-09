@@ -14,16 +14,34 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class AnomaliesExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 {
-    public function __construct(private readonly int $journalId) {}
+    public function __construct(
+        private readonly ?int $journalId = null,
+        private readonly ?int $pointOfSaleId = null,
+    ) {}
 
     public function title(): string { return 'Anomalies'; }
 
     public function query()
     {
-        return Anomaly::with('invoice')
-            ->where('journal_id', $this->journalId)
+        $q = Anomaly::with('invoice')
             ->orderBy('severity')
             ->orderBy('created_at');
+
+        if ($this->journalId) {
+            $q->where('journal_id', $this->journalId);
+        } elseif ($this->pointOfSaleId) {
+            $q->whereIn('journal_id', function ($query) {
+                $query->select('id')
+                    ->from('journals')
+                    ->whereIn('device_id', function ($deviceQuery) {
+                        $deviceQuery->select('id')
+                            ->from('devices')
+                            ->where('point_of_sale_id', $this->pointOfSaleId);
+                    });
+            });
+        }
+
+        return $q;
     }
 
     public function headings(): array

@@ -8,6 +8,7 @@ use App\Exports\InvoicesExport;
 use App\Exports\TvaDetailedExport;
 use App\Models\Journal;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ExportController extends Controller
@@ -104,5 +105,46 @@ class ExportController extends Controller
         $filename = "tva_detaillee_{$journal->filename}.xlsx";
 
         return Excel::download(new TvaDetailedExport($journalId), $filename);
+    }
+
+    /** Export Excel de toutes les transactions d'un Point de Vente */
+    public function posInvoicesExcel(int $posId, string $type = 'all')
+    {
+        $pos = \App\Models\PointOfSale::findOrFail($posId);
+        $typeFilter = $type === 'all' ? null : $type;
+        $cleanName = Str::slug($pos->name);
+        $filename  = "transactions_pdv_{$cleanName}_{$type}.xlsx";
+
+        return Excel::download(new InvoicesExport(null, $typeFilter, null, null, $posId), $filename);
+    }
+
+    /** Export Excel du palmarès des articles d'un Point de Vente */
+    public function posArticlesExcel(int $posId)
+    {
+        $pos = \App\Models\PointOfSale::findOrFail($posId);
+        $cleanName = Str::slug($pos->name);
+        $filename  = "articles_pdv_{$cleanName}.xlsx";
+
+        return Excel::download(new ArticlesExport(null, $posId), $filename);
+    }
+
+    /** Export Excel complet multi-feuilles d'un Point de Vente */
+    public function posFullReportExcel(int $posId)
+    {
+        $pos = \App\Models\PointOfSale::findOrFail($posId);
+        $cleanName = Str::slug($pos->name);
+        $filename  = "rapport_complet_pdv_{$cleanName}.xlsx";
+
+        return Excel::download(new FullReportExport(null, $posId), $filename);
+    }
+
+    /** Export Excel des détails de TVA d'un Point de Vente */
+    public function posTvaDetailedExcel(int $posId)
+    {
+        $pos = \App\Models\PointOfSale::findOrFail($posId);
+        $cleanName = Str::slug($pos->name);
+        $filename  = "tva_detaillee_pdv_{$cleanName}.xlsx";
+
+        return Excel::download(new TvaDetailedExport(null, $posId), $filename);
     }
 }

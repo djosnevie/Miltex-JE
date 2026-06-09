@@ -121,7 +121,15 @@ class MultiTenancyAndConsistencyTest extends TestCase
         $filePath = base_path('JE_IC02000193-1_1532.txt');
         $journal = $this->parser->parseFile($filePath, basename($filePath), $device->id);
 
-        $response = $this->get(route('export.tva.excel', $journal->id));
+        $user = \App\Models\User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@miltex.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('export.tva.excel', $journal->id));
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
@@ -136,7 +144,15 @@ class MultiTenancyAndConsistencyTest extends TestCase
         $filePath = base_path('JE_IC02000193-1_1532.txt');
         $journal = $this->parser->parseFile($filePath, basename($filePath), $device->id);
 
-        $response = $this->get(route('export.tva.daily.pdf', $journal->id));
+        $user = \App\Models\User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@miltex.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('export.tva.daily.pdf', $journal->id));
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
     }

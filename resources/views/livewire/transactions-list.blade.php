@@ -7,28 +7,41 @@
             
             {{-- Search and Filters --}}
             <div style="display: flex; gap: 12px; flex-wrap: wrap; flex: 1;">
-                <div style="min-width: 240px; flex: 1;">
+                <div style="min-width: 200px; flex: 1;">
                     <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Recherche</label>
                     <input type="text" wire:model.live.debounce.300ms="search" placeholder="N° facture, nom client..." style="width: 100%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 
-                <div style="width: 160px;">
+                <div style="width: 150px;">
                     <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Type Facture</label>
                     <select wire:model.live="type" style="width: 100%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none;">
                         <option value="">Tous les types</option>
-                        <option value="FACTURE">Facture (Vente)</option>
-                        <option value="AVOIR">Note d'Avoir</option>
-                        <option value="ANNULATION">Annulation</option>
+                        <option value="sale">Facture (Vente)</option>
+                        <option value="credit_note">Note d'Avoir</option>
+                        <option value="cancelled">Annulation</option>
                     </select>
                 </div>
 
-                <div style="min-width: 220px; flex: 1;">
-                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Journal Source</label>
+                {{-- POS Filter ← NEW --}}
+                <div style="min-width: 180px; flex: 1;">
+                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Point de Vente</label>
+                    <select wire:model.live="posId" style="width: 100%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none;">
+                        <option value="">Tous les PDV</option>
+                        @foreach($pointsOfSale as $pos)
+                            <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="min-width: 200px; flex: 1;">
+                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Journal Source
+                        @if($posId) <span style="color:var(--accent);">(filtré)</span>@endif
+                    </label>
                     <select wire:model.live="journalId" style="width: 100%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none;">
                         <option value="">Tous les journaux</option>
                         @foreach($journals as $journal)
                             <option value="{{ $journal->id }}">
-                                {{ $journal->filename }} ({{ $journal->device->nid ?? 'N/A' }})
+                                {{ $journal->filename }} — {{ $journal->device->pointOfSale->name ?? ($journal->device->nid ?? 'N/A') }}
                             </option>
                         @endforeach
                     </select>
@@ -50,6 +63,18 @@
 
     {{-- Transactions Table --}}
     <div class="card">
+        {{-- Results summary bar --}}
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; color: var(--muted);">
+                <strong style="color: var(--text);">{{ number_format($invoices->total()) }}</strong> transaction(s) trouvée(s)
+                @if($type)
+                    &nbsp;·&nbsp; Filtre&nbsp;: <span style="color: var(--accent);">{{ match($type) { 'sale' => 'Ventes', 'credit_note' => 'Avoirs', 'cancelled' => 'Annulations', default => $type } }}</span>
+                @endif
+            </span>
+            <span style="font-size: 12px; color: var(--muted);">
+                Page {{ $invoices->currentPage() }} / {{ $invoices->lastPage() }}
+            </span>
+        </div>
         <div class="table-wrap">
             <table>
                 <thead>
@@ -92,21 +117,29 @@
                                 {{ $invoice->invoice_no }}
                             </td>
                             <td>
-                                @if($invoice->type === 'FACTURE')
-                                    <span class="badge badge-sale">Vente</span>
-                                @elseif($invoice->type === 'AVOIR')
-                                    <span class="badge badge-credit">Avoir</span>
-                                @else
-                                    <span class="badge badge-cancelled">Annulé</span>
-                                @endif
+                                @php
+                                    $badgeClass = match($invoice->type) {
+                                        'sale'        => 'badge-sale',
+                                        'credit_note' => 'badge-credit',
+                                        'cancelled'   => 'badge-cancelled',
+                                        default       => 'badge-cancelled',
+                                    };
+                                    $badgeLabel = match($invoice->type) {
+                                        'sale'        => 'Vente',
+                                        'credit_note' => 'Avoir',
+                                        'cancelled'   => 'Annulé',
+                                        default       => $invoice->type,
+                                    };
+                                @endphp
+                                <span class="badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
                             </td>
                             <td style="color: var(--muted);">
                                 {{ $invoice->date_time ? \Carbon\Carbon::parse($invoice->date_time)->format('d/m/Y H:i') : 'N/A' }}
                             </td>
                             <td>
                                 <div style="font-weight: 500;">{{ $invoice->buyer_name ?? 'Client Anonyme' }}</div>
-                                @if($invoice->buyer_nif)
-                                    <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">NIF: {{ $invoice->buyer_nif }}</div>
+                                @if($invoice->buyer_id)
+                                    <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">ID: {{ $invoice->buyer_id }}</div>
                                 @endif
                             </td>
                             <td style="text-align: right; font-family: monospace;">

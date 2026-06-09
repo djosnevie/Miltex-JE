@@ -4,95 +4,101 @@
 <meta charset="UTF-8">
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #1a1a2e; }
-    .header { background: #1E3A5F; color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 16px; font-weight: bold; }
-    .header .meta { font-size: 9px; text-align: right; line-height: 1.6; }
-    .section { padding: 16px 24px; }
-    .section-title { font-size: 12px; font-weight: bold; color: #1E3A5F; border-bottom: 2px solid #1E3A5F; padding-bottom: 4px; margin-bottom: 10px; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-bottom: 16px; }
-    .info-row { display: flex; gap: 6px; }
-    .info-label { font-weight: bold; color: #555; min-width: 130px; }
-    .kpi-grid { display: flex; gap: 12px; margin-bottom: 16px; }
-    .kpi-box { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; text-align: center; }
-    .kpi-box .value { font-size: 14px; font-weight: bold; color: #1E3A5F; }
-    .kpi-box .label { font-size: 8px; color: #888; margin-top: 2px; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-    th { background: #1E3A5F; color: white; padding: 6px 8px; text-align: left; font-size: 9px; }
-    td { padding: 5px 8px; font-size: 9px; border-bottom: 1px solid #eee; }
-    tr:nth-child(even) td { background: #f8f9fc; }
+    body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #1a1a2e; padding: 20px; }
+    .section { padding: 12px 0; }
+    .section-title { font-size: 11px; font-weight: bold; color: #0A0537; border-bottom: 2px solid #0000C8; padding-bottom: 4px; margin-bottom: 10px; text-transform: uppercase; }
+    table.data-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    table.data-table th { background: #0A0537; color: white; padding: 7px 10px; text-align: left; font-size: 9px; font-weight: bold; }
+    table.data-table td { padding: 6px 10px; font-size: 9px; border-bottom: 1px solid #eee; color: #333; }
+    table.data-table tr:nth-child(even) td { background: #f8fafc; }
     .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 8px; font-weight: bold; }
     .badge-critical { background: #fee2e2; color: #991b1b; }
     .badge-warning  { background: #fef9c3; color: #92400e; }
     .badge-info     { background: #dbeafe; color: #1e40af; }
-    .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 8px; color: #aaa; border-top: 1px solid #eee; padding: 6px 0; }
-    .no-anomaly { text-align: center; color: #16a34a; font-weight: bold; padding: 16px; }
+    .footer { position: fixed; bottom: 10px; left: 20px; right: 20px; text-align: center; font-size: 8px; color: #aaa; border-top: 1px solid #eee; padding-top: 8px; }
+    .no-anomaly { text-align: center; color: #16a34a; font-weight: bold; padding: 20px; border: 1px dashed #16a34a; border-radius: 6px; background: #f0fdf4; }
 </style>
 </head>
 <body>
 
-<div class="header">
-    <div>
-        <h1>Rapport de Conformité DGI</h1>
-        <div style="font-size:9px; margin-top:4px; opacity:.85;">{{ $journal->device->pointOfSale->company->name ?? 'Miltex SARL' }}</div>
-    </div>
-    <div class="meta">
-        <div>NIF : {{ $journal->device->pointOfSale->company->nif ?? '—' }}</div>
-        <div>Dispositif : {{ $journal->device->nid }}</div>
-        <div>Généré le : {{ now()->format('d/m/Y H:i') }}</div>
-    </div>
-</div>
+{{-- Brand Header Table --}}
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 3px solid #0000C8;">
+    <tr>
+        <td style="width: 40%; padding-bottom: 10px; vertical-align: middle;">
+            @if(file_exists(storage_path('app/public/logo.png')))
+                <img src="{{ storage_path('app/public/logo.png') }}" style="height: 48px; display: block;" alt="Miltex Group">
+            @else
+                <span style="font-size: 16px; font-weight: bold; color: #0A0537;">⚡ Miltex Group</span>
+            @endif
+        </td>
+        <td style="width: 60%; text-align: right; padding-bottom: 10px; vertical-align: middle; line-height: 1.4; color: #0A0537;">
+            <h1 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #0A0537; text-transform: uppercase; letter-spacing: 0.5px;">Rapport de Conformité DGI</h1>
+            <div style="font-size: 9px; font-weight: bold;">{{ $journal->device->pointOfSale->company->name ?? 'Miltex SARL' }}</div>
+            <div style="font-size: 8px; color: #555;">NIF : {{ $journal->device->pointOfSale->company->nif ?? '—' }} | Dispositif : {{ $journal->device->nid }}</div>
+            <div style="font-size: 8px; color: #777;">Généré le : {{ now()->format('d/m/Y H:i') }}</div>
+        </td>
+    </tr>
+</table>
 
+{{-- Section info --}}
 <div class="section">
     <div class="section-title">Informations du Journal Électronique</div>
-    <div class="info-grid">
-        <div class="info-row"><span class="info-label">Fichier :</span> {{ $journal->original_name }}</div>
-        <div class="info-row"><span class="info-label">Point de vente :</span> {{ $journal->device->pointOfSale->name ?? '—' }}</div>
-        <div class="info-row"><span class="info-label">Période :</span> {{ $journal->start_date?->format('d/m/Y') }} → {{ $journal->end_date?->format('d/m/Y') }}</div>
-        <div class="info-row"><span class="info-label">ISF :</span> {{ $journal->device->isf ?? '—' }}</div>
-    </div>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+        <tr>
+            <td style="width: 50%; padding: 4px 0; border: none; font-size: 9px;"><span style="font-weight: bold; color: #555;">Fichier :</span> {{ $journal->original_name }}</td>
+            <td style="width: 50%; padding: 4px 0; border: none; font-size: 9px;"><span style="font-weight: bold; color: #555;">Point de vente :</span> {{ $journal->device->pointOfSale->name ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td style="width: 50%; padding: 4px 0; border: none; font-size: 9px;"><span style="font-weight: bold; color: #555;">Période :</span> {{ $journal->start_date?->format('d/m/Y') }} → {{ $journal->end_date?->format('d/m/Y') }}</td>
+            <td style="width: 50%; padding: 4px 0; border: none; font-size: 9px;"><span style="font-weight: bold; color: #555;">ISF :</span> {{ $journal->device->isf ?? '—' }}</td>
+        </tr>
+    </table>
 </div>
 
+{{-- Section KPI --}}
 <div class="section">
     <div class="section-title">Résumé Financier</div>
-    <div class="kpi-grid">
-        <div class="kpi-box">
-            <div class="value">{{ number_format($journal->total_invoices, 0, ',', ' ') }}</div>
-            <div class="label">Factures de vente</div>
-        </div>
-        <div class="kpi-box">
-            <div class="value">{{ number_format($journal->total_ttc, 0, ',', ' ') }} CDF</div>
-            <div class="label">CA TTC</div>
-        </div>
-        <div class="kpi-box">
-            <div class="value">{{ number_format($journal->total_tva, 0, ',', ' ') }} CDF</div>
-            <div class="label">TVA collectée (16%)</div>
-        </div>
-        <div class="kpi-box">
-            <div class="value">{{ $journal->total_cancelled }}</div>
-            <div class="label">Annulations</div>
-        </div>
-        <div class="kpi-box">
-            <div class="value">{{ $journal->total_credits }}</div>
-            <div class="label">Avoirs / Crédits</div>
-        </div>
-    </div>
+    <table style="width: 100%; border-collapse: separate; border-spacing: 8px 0; margin-left: -8px; margin-right: -8px;">
+        <tr>
+            <td style="width: 20%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center; background: #fafafa;">
+                <div style="font-size: 14px; font-weight: bold; color: #0000C8;">{{ number_format($journal->total_invoices, 0, ',', ' ') }}</div>
+                <div style="font-size: 8px; color: #777; margin-top: 3px; font-weight: bold; text-transform: uppercase;">Ventes</div>
+            </td>
+            <td style="width: 25%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center; background: #fafafa;">
+                <div style="font-size: 14px; font-weight: bold; color: #0000C8;">{{ number_format($journal->total_ttc, 0, ',', ' ') }} CDF</div>
+                <div style="font-size: 8px; color: #777; margin-top: 3px; font-weight: bold; text-transform: uppercase;">CA TTC</div>
+            </td>
+            <td style="width: 25%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center; background: #fafafa;">
+                <div style="font-size: 14px; font-weight: bold; color: #0000C8;">{{ number_format($journal->total_tva, 0, ',', ' ') }} CDF</div>
+                <div style="font-size: 8px; color: #777; margin-top: 3px; font-weight: bold; text-transform: uppercase;">TVA (16%)</div>
+            </td>
+            <td style="width: 15%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center; background: #fafafa;">
+                <div style="font-size: 14px; font-weight: bold; color: #0000C8;">{{ $journal->total_cancelled }}</div>
+                <div style="font-size: 8px; color: #777; margin-top: 3px; font-weight: bold; text-transform: uppercase;">Annulées</div>
+            </td>
+            <td style="width: 15%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center; background: #fafafa;">
+                <div style="font-size: 14px; font-weight: bold; color: #0000C8;">{{ $journal->total_credits }}</div>
+                <div style="font-size: 8px; color: #777; margin-top: 3px; font-weight: bold; text-transform: uppercase;">Avoirs</div>
+            </td>
+        </tr>
+    </table>
 </div>
 
-<div class="section">
+{{-- Section Anomalies --}}
+<div class="section" style="margin-top: 10px;">
     <div class="section-title">Anomalies Détectées ({{ $journal->anomalies->count() }})</div>
 
     @if($journal->anomalies->isEmpty())
-        <div class="no-anomaly">✔ Aucune anomalie détectée — Journal conforme</div>
+        <div class="no-anomaly">✔ Aucune anomalie détectée — Journal entièrement conforme aux exigences DGI</div>
     @else
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th>Sévérité</th>
-                    <th>Type</th>
-                    <th>Facture</th>
-                    <th>Description</th>
-                    <th>Résolu</th>
+                    <th style="width: 15%">Sévérité</th>
+                    <th style="width: 20%">Type</th>
+                    <th style="width: 15%">Facture</th>
+                    <th style="width: 40%">Description</th>
+                    <th style="width: 10%">Résolu</th>
                 </tr>
             </thead>
             <tbody>
@@ -103,10 +109,12 @@
                             {{ strtoupper($anomaly->severity) }}
                         </span>
                     </td>
-                    <td>{{ $anomaly->type }}</td>
+                    <td style="font-weight: 500;">{{ $anomaly->type }}</td>
                     <td>{{ $anomaly->invoice?->invoice_no ?? '—' }}</td>
-                    <td>{{ $anomaly->description }}</td>
-                    <td>{{ $anomaly->is_resolved ? 'Oui' : 'Non' }}</td>
+                    <td style="color: #444; line-height: 1.3;">{{ $anomaly->description }}</td>
+                    <td style="font-weight: bold; color: {{ $anomaly->is_resolved ? '#16a34a' : '#ef4444' }};">
+                        {{ $anomaly->is_resolved ? 'Oui' : 'Non' }}
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -115,7 +123,7 @@
 </div>
 
 <div class="footer">
-    Rapport généré par Miltex EAJE — Système d'Analyse des Journaux Électroniques Fiscaux (RDC)
+    Rapport de Conformité DGI généré par Miltex EAJE — Système d'Analyse des Journaux Électroniques Fiscaux (RDC)
 </div>
 
 </body>

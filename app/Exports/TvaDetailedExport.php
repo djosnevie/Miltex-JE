@@ -16,7 +16,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class TvaDetailedExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 {
     public function __construct(
-        private readonly int $journalId
+        private readonly ?int $journalId = null,
+        private readonly ?int $pointOfSaleId = null,
     ) {}
 
     public function title(): string
@@ -28,10 +29,19 @@ class TvaDetailedExport implements FromQuery, WithHeadings, WithMapping, WithSty
     {
         // For TVA declaration, we only include sales and credit notes
         // as cancelled invoices do not carry tax liability.
-        return Invoice::with('journal')
-            ->where('journal_id', $this->journalId)
+        $q = Invoice::with('journal')
             ->whereIn('type', ['sale', 'credit_note'])
             ->orderBy('date_time');
+
+        if ($this->journalId) {
+            $q->where('journal_id', $this->journalId);
+        } elseif ($this->pointOfSaleId) {
+            $q->whereHas('journal.device', function ($dq) {
+                $dq->where('point_of_sale_id', $this->pointOfSaleId);
+            });
+        }
+
+        return $q;
     }
 
     public function headings(): array

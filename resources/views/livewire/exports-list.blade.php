@@ -1,37 +1,72 @@
 @section('title', 'Rapports & Exports')
 
 <div>
-    {{-- Journal Selector Card --}}
+    {{-- POS & Journal Selector Card --}}
     <div class="card" style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <div>
-                <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600;">Sélectionner le Journal Électronique</h3>
-                <p style="margin: 0; font-size: 12px; color: var(--muted);">Choisissez le journal contenant les données à exporter</p>
+        <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600;">Sélection des données d'exportation</h3>
+        <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--muted);">Choisissez un Point de Vente pour obtenir des rapports consolidés, ou sélectionnez un Journal pour des exports spécifiques.</p>
+        
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            {{-- POS filter selector --}}
+            <div style="flex: 1; min-width: 250px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Point de Vente</label>
+                <select wire:model.live="posId" style="width: 100%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer;">
+                    <option value="">Tous les points de vente (Consolidé)</option>
+                    @foreach($pointsOfSale as $pos)
+                        <option value="{{ $pos->id }}">{{ $pos->name }} ({{ $pos->city ?? 'N/A' }})</option>
+                    @endforeach
+                </select>
             </div>
-            
-            <div style="min-width: 280px;">
-                @if($journals->isNotEmpty())
-                    <select wire:model.live="selectedJournalId" style="width: 100%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 13.5px; outline: none; cursor: pointer;">
-                        @foreach($journals as $j)
-                            <option value="{{ $j->id }}">
-                                {{ $j->original_name }} ({{ $j->device->nid ?? 'N/A' }})
-                            </option>
-                        @endforeach
-                    </select>
-                @else
-                    <span style="font-size: 13px; color: var(--muted);">Aucun journal disponible</span>
-                @endif
+
+            {{-- Journal selector --}}
+            <div style="flex: 1; min-width: 250px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">
+                    Journal Électronique @if($posId)<span style="color:var(--accent);">(filtré)</span>@endif
+                </label>
+                <select wire:model.live="selectedJournalId" style="width: 100%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer;">
+                    <option value="">-- Sélectionner un Journal --</option>
+                    @foreach($journals as $j)
+                        <option value="{{ $j->id }}">
+                            {{ $j->original_name }} ({{ $j->device->nid ?? 'N/A' }})
+                        </option>
+                    @endforeach
+                </select>
             </div>
         </div>
     </div>
 
-    @if(!$selectedJournal)
-        <div class="alert alert-info" style="margin-top: 20px;">
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Veuillez d'abord importer un journal pour accéder aux rapports et exports.
-            <a href="{{ route('journals.import') }}" style="color: inherit; font-weight: 600; margin-left: 6px;">Importer un journal →</a>
+    {{-- POS Consolidated Exports Card (if POS selected) --}}
+    @if($posId)
+        <div class="card" style="margin-bottom: 24px; border: 1px solid rgba(16, 185, 129, 0.25); background: rgba(16, 185, 129, 0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(16, 185, 129, 0.15); padding-bottom: 10px;">
+                <div>
+                    <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                        <span>📦</span> Rapports Consolidés : <span style="color: var(--success);">{{ \App\Models\PointOfSale::find($posId)?->name }}</span>
+                    </h3>
+                    <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--muted);">Générez et téléchargez des rapports de vente consolidant tous les périphériques DEF de ce point de vente</p>
+                </div>
+                <span class="badge badge-sale">Point de Vente</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                <a href="{{ route('export.pos.full.excel', $posId) }}" class="btn btn-success" style="justify-content: center; font-size: 12px; padding: 10px;">
+                    📁 Rapport Complet Consolidé (Excel)
+                </a>
+                <a href="{{ route('export.pos.invoices.excel', [$posId, 'all']) }}" class="btn btn-ghost" style="border-color: var(--success); color: #34D399; justify-content: center; font-size: 12px; padding: 10px;">
+                    📊 Toutes les Transactions (Excel)
+                </a>
+                <a href="{{ route('export.pos.articles.excel', $posId) }}" class="btn btn-ghost" style="border-color: var(--success); color: #34D399; justify-content: center; font-size: 12px; padding: 10px;">
+                    📦 Palmarès des Articles (Excel)
+                </a>
+                <a href="{{ route('export.pos.tva.excel', $posId) }}" class="btn btn-ghost" style="border-color: var(--success); color: #34D399; justify-content: center; font-size: 12px; padding: 10px;">
+                    🧾 Détail Calcul TVA (Excel)
+                </a>
+            </div>
         </div>
-    @else
+    @endif
+
+    {{-- Individual Journal Exports --}}
+    @if($selectedJournal)
         {{-- Selected Journal Details --}}
         <div class="card" style="margin-bottom: 24px; padding: 16px 20px; border-left: 3px solid var(--accent);">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
@@ -58,7 +93,7 @@
         </div>
 
         {{-- Export Cards Grid --}}
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; flex-wrap: wrap;">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
             
             {{-- Card 1: Rapport Complet --}}
             <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
@@ -179,6 +214,11 @@
                 </a>
             </div>
 
+        </div>
+    @elseif(!$posId)
+        <div class="alert alert-info" style="margin-top: 20px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Veuillez sélectionner un Point de Vente ou choisir un Journal spécifique pour afficher les options d'exportation disponibles.
         </div>
     @endif
 </div>

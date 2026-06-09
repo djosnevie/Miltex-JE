@@ -130,10 +130,15 @@
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
             Tableau de Bord
         </a>
-        <a href="{{ route('journals.import') }}" class="nav-item {{ request()->routeIs('journals.*') ? 'active' : '' }}">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            Importer un Journal
-        </a>
+
+        @auth
+            @if(auth()->user()->canImport())
+            <a href="{{ route('journals.import') }}" class="nav-item {{ request()->routeIs('journals.*') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Importer un Journal
+            </a>
+            @endif
+        @endauth
 
         <div class="nav-section">Analyse</div>
         <a href="{{ route('transactions.index') }}" class="nav-item {{ request()->routeIs('transactions.*') ? 'active' : '' }}">
@@ -148,11 +153,55 @@
                 <span style="margin-left:auto; background:#EF4444; color:white; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px;">{{ $unresolvedCount }}</span>
             @endif
         </a>
-        <a href="{{ route('exports.index') }}" class="nav-item {{ request()->routeIs('exports.*') ? 'active' : '' }}">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Rapports & Exports
-        </a>
+
+        @auth
+            @if(auth()->user()->canExport())
+            <a href="{{ route('exports.index') }}" class="nav-item {{ request()->routeIs('exports.*') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Rapports & Exports
+            </a>
+            @endif
+
+            @if(auth()->user()->canManagePointsOfSale() || auth()->user()->canManageUsers())
+            <div class="nav-section">Administration</div>
+            @endif
+
+            @if(auth()->user()->canManagePointsOfSale())
+            <a href="{{ route('points-of-sale.index') }}" class="nav-item {{ request()->routeIs('points-of-sale.*') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                Points de Vente & DEF
+            </a>
+            @endif
+
+            @if(auth()->user()->canManageUsers())
+            <a href="{{ route('users.index') }}" class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Utilisateurs
+            </a>
+            @endif
+        @endauth
     </nav>
+
+    {{-- User profile footer --}}
+    @auth
+    <div style="padding:16px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#10B981);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">
+                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            </div>
+            <div style="overflow:hidden;">
+                <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}</div>
+                <div style="font-size:11px;color:var(--muted);">{{ auth()->user()->roleBadge() }}</div>
+            </div>
+        </div>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" style="width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#FCA5A5;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.1)'">
+                🚪 Se déconnecter
+            </button>
+        </form>
+    </div>
+    @endauth
 </aside>
 
 <!-- Main Content -->
@@ -161,7 +210,17 @@
         <div class="topbar-title">@yield('title', 'Tableau de Bord')</div>
         <div class="topbar-right">
             <span style="font-size:12px; color:var(--muted);">{{ now()->format('d/m/Y') }}</span>
-            <div class="avatar">M</div>
+            @auth
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="text-align:right;">
+                    <div style="font-size:12px;font-weight:600;color:var(--text);">{{ auth()->user()->name }}</div>
+                    <div style="font-size:10px;color:var(--muted);">{{ auth()->user()->roleBadge() }}</div>
+                </div>
+                <div class="avatar" style="background:linear-gradient(135deg,#3B82F6,#10B981);">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+            </div>
+            @endauth
         </div>
     </header>
     <main class="content">

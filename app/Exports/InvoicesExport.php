@@ -16,10 +16,11 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class InvoicesExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 {
     public function __construct(
-        private readonly int    $journalId,
+        private readonly ?int    $journalId = null,
         private readonly ?string $type   = null,   // 'sale' | 'credit_note' | 'cancelled' | null (all)
         private readonly ?string $from   = null,
         private readonly ?string $to     = null,
+        private readonly ?int    $pointOfSaleId = null,
     ) {}
 
     public function title(): string
@@ -29,9 +30,16 @@ class InvoicesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
 
     public function query()
     {
-        $q = Invoice::with('journal')
-            ->where('journal_id', $this->journalId)
+        $q = Invoice::with('journal.device.pointOfSale')
             ->orderBy('date_time');
+
+        if ($this->journalId) {
+            $q->where('journal_id', $this->journalId);
+        } elseif ($this->pointOfSaleId) {
+            $q->whereHas('journal.device', function ($dq) {
+                $dq->where('point_of_sale_id', $this->pointOfSaleId);
+            });
+        }
 
         if ($this->type) {
             $q->where('type', $this->type);
