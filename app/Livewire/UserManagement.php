@@ -33,7 +33,7 @@ class UserManagement extends Component
     #[Rule('required|in:super_admin,admin,analyst')]
     public string $formRole      = 'analyst';
 
-    #[Rule('nullable|min:8|confirmed')]
+    #[Rule('nullable|min:8|same:formPasswordConfirmation')]
     public string $formPassword  = '';
     public string $formPasswordConfirmation = '';
 
@@ -96,13 +96,26 @@ class UserManagement extends Component
                 'tenant_id' => $this->formRole === 'super_admin' ? null : $this->formTenantId,
             ];
             if ($this->formPassword) {
-                $this->validate(['formPassword' => 'min:8|confirmed']);
+                $this->validate(
+                    ['formPassword' => 'min:8|same:formPasswordConfirmation'],
+                    [
+                        'formPassword.min'  => 'Le mot de passe doit contenir au moins 8 caractères.',
+                        'formPassword.same' => 'Les deux mots de passe ne correspondent pas.',
+                    ]
+                );
                 $data['password'] = Hash::make($this->formPassword);
             }
             $user->update($data);
             session()->flash('success', "Utilisateur {$user->name} mis à jour.");
         } else {
-            $this->validate(['formPassword' => 'required|min:8|confirmed']);
+            $this->validate(
+                ['formPassword' => 'required|min:8|same:formPasswordConfirmation'],
+                [
+                    'formPassword.required' => 'Le mot de passe est obligatoire.',
+                    'formPassword.min'      => 'Le mot de passe doit contenir au moins 8 caractères.',
+                    'formPassword.same'     => 'Les deux mots de passe ne correspondent pas.',
+                ]
+            );
             User::create([
                 'name'      => $this->formName,
                 'email'     => $this->formEmail,
