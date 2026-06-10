@@ -78,7 +78,7 @@
             <div class="kpi-icon blue">
                 <svg width="22" height="22" fill="none" stroke="#3B82F6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <div class="kpi-value">{{ number_format($totalTtc, 0, ',', ' ') }} USD</div>
+            <div class="kpi-value">{{ number_format($totalTtc, 0, ',', ' ') }} CDF</div>
             <div class="kpi-label">CA TTC</div>
             <div class="kpi-sub">Total des ventes</div>
         </div>
@@ -86,7 +86,7 @@
             <div class="kpi-icon green">
                 <svg width="22" height="22" fill="none" stroke="#10B981" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
             </div>
-            <div class="kpi-value">{{ number_format($totalTva, 0, ',', ' ') }} USD</div>
+            <div class="kpi-value">{{ number_format($totalTva, 0, ',', ' ') }} CDF</div>
             <div class="kpi-label">TVA Collectée</div>
             <div class="kpi-sub">Taux légal : 16%</div>
         </div>
@@ -112,7 +112,7 @@
     <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px;">
         {{-- Daily Sales Chart --}}
         <div class="card" wire:ignore id="daily-chart-card">
-            <div class="card-title">Évolution Journalière du CA (USD TTC)</div>
+            <div class="card-title">Évolution Journalière du CA (CDF TTC)</div>
             <div id="dailyChart"></div>
         </div>
         {{-- Hourly heatmap --}}
@@ -136,7 +136,7 @@
             </div>
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>Article</th><th>Qté</th><th style="text-align:right">CA (USD)</th></tr></thead>
+                    <thead><tr><th>Article</th><th>Qté</th><th style="text-align:right">CA (CDF)</th></tr></thead>
                     <tbody>
                         @forelse($topArticles as $article)
                         <tr>
@@ -261,14 +261,14 @@
         if (dailyEl && dailyData.length > 0) {
             dailyChart = new ApexCharts(dailyEl, {
                 chart: { type: 'area', height: 220, toolbar: { show: false }, background: 'transparent', foreColor: '#94A3B8' },
-                series: [{ name: 'CA TTC (USD)', data: dailyData.map(d => ({ x: d.date, y: d.total })) }],
+                series: [{ name: 'CA TTC (CDF)', data: dailyData.map(d => ({ x: d.date, y: d.total })) }],
                 xaxis: { type: 'datetime', labels: { style: { colors: '#94A3B8', fontSize: '11px' } } },
                 yaxis: { labels: { formatter: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v, style: { colors: '#94A3B8' } } },
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.02 } },
                 stroke: { curve: 'smooth', width: 2.5 },
                 colors: ['#3B82F6'],
                 grid: { borderColor: 'rgba(255,255,255,0.06)' },
-                tooltip: { theme: 'dark', y: { formatter: v => new Intl.NumberFormat('en-US').format(v) + ' USD' } },
+                tooltip: { theme: 'dark', y: { formatter: v => new Intl.NumberFormat('fr-CD').format(v) + ' CDF' } },
             });
             dailyChart.render();
         } else if (dailyEl) {

@@ -94,14 +94,14 @@
                         </th>
                         <th>Client</th>
                         <th style="text-align: right; cursor: pointer;" wire:click="sort('total_ht')">
-                            Total HT (USD)
+                            Total HT (CDF)
                             @if($sortBy === 'total_ht')
                                 <span>{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
                             @endif
                         </th>
-                        <th style="text-align: right;">TVA (USD)</th>
+                        <th style="text-align: right;">TVA (CDF)</th>
                         <th style="text-align: right; cursor: pointer;" wire:click="sort('total_ttc')">
-                            Total TTC (USD)
+                            Total TTC (CDF)
                             @if($sortBy === 'total_ttc')
                                 <span>{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
                             @endif
