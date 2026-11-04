@@ -58,9 +58,9 @@ class Device extends Model
     public function statusBadge(): string
     {
         return match ($this->status) {
-            'active'      => '🟢 Actif',
-            'inactive'    => '🔴 Inactif',
-            'maintenance' => '🟡 Maintenance',
+            'active'      => 'Actif',
+            'inactive'    => 'Inactif',
+            'maintenance' => 'Maintenance',
             default       => $this->status,
         };
     }

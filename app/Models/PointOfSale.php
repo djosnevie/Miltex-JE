@@ -104,7 +104,7 @@ class PointOfSale extends Model
 
     public function statusBadge(): string
     {
-        return $this->is_active ? '🟢 Actif' : '🔴 Inactif';
+        return $this->is_active ? 'Actif' : 'Inactif';
     }
 
     public function fullAddress(): string

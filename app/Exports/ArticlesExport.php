@@ -11,12 +11,16 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class ArticlesExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 {
     public function __construct(
-        private readonly ?int $journalId = null,
-        private readonly ?int $pointOfSaleId = null,
+        private readonly ?int    $journalId = null,
+        private readonly ?int    $pointOfSaleId = null,
+        private readonly ?string $from = null,
+        private readonly ?string $to = null,
+        private readonly ?int    $deviceId = null,
     ) {}
 
     public function title(): string
@@ -50,6 +54,23 @@ class ArticlesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             });
         }
 
+        if ($this->deviceId) {
+            $q->whereIn('invoices.journal_id', function ($query) {
+                $query->select('id')
+                    ->from('journals')
+                    ->where('device_id', $this->deviceId);
+            });
+        }
+
+        if ($this->from) {
+            $fromStr = strlen($this->from) === 10 ? $this->from . ' 00:00:00' : $this->from;
+            $q->where('invoices.date_time', '>=', $fromStr);
+        }
+        if ($this->to) {
+            $toStr = strlen($this->to) === 10 ? $this->to . ' 23:59:59' : $this->to;
+            $q->where('invoices.date_time', '<=', $toStr);
+        }
+
         return $q->groupBy('invoice_items.name', 'invoice_items.tax_group')
             ->orderByDesc('total_revenue');
     }
@@ -57,7 +78,7 @@ class ArticlesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
     public function headings(): array
     {
         return [
-            'Article',
+            'Article / Désignation',
             'Groupe TVA',
             'Quantité Totale',
             'Prix Unitaire Moyen (CDF)',
@@ -83,8 +104,9 @@ class ArticlesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
                 'fill' => [
                     'fillType'   => Fill::FILL_SOLID,
-                    'startColor' => ['argb' => 'FF0D6E3C'],
+                    'startColor' => ['argb' => 'FF059669'],
                 ],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
         ];
     }

@@ -1,30 +1,39 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion — Miltex EAJE</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         :root {
-            --bg:        #0A0D14;
-            --surface:   #111827;
-            --surface-2: #1A2235;
-            --border:    rgba(255,255,255,0.08);
-            --text:      #F1F5F9;
-            --muted:     #6B7280;
-            --accent:    #3B82F6;
-            --accent-glow: rgba(59,130,246,0.25);
-            --success:   #10B981;
-            --danger:    #EF4444;
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --surface-elevated: #F8FAFC;
+            --border: #E2E8F0;
+            --border-hover: #CBD5E1;
+            --text: #0F172A;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+            --accent: #2563EB;
+            --accent-glow: rgba(37, 99, 235, 0.18);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
@@ -33,240 +42,300 @@
             justify-content: center;
             overflow: hidden;
             position: relative;
+            padding: 24px;
         }
 
-        /* Animated background orbs */
-        body::before {
-            content: '';
+        /* Ambient background glow & grid */
+        .ambient-glow-1 {
             position: fixed;
-            top: -30%;
-            left: -20%;
+            top: -20%;
+            left: 20%;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
             border-radius: 50%;
-            animation: float 8s ease-in-out infinite;
             pointer-events: none;
+            filter: blur(50px);
         }
-        body::after {
-            content: '';
+
+        .ambient-glow-2 {
             position: fixed;
             bottom: -20%;
-            right: -10%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+            right: 15%;
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.07) 0%, transparent 70%);
             border-radius: 50%;
-            animation: float 10s ease-in-out infinite reverse;
+            pointer-events: none;
+            filter: blur(50px);
+        }
+
+        .ambient-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+            background-size: 36px 36px;
             pointer-events: none;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50%       { transform: translateY(-30px) scale(1.05); }
-        }
-
-        /* Card */
-        .login-card {
+        /* Login Card */
+        .auth-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 48px 40px;
+            border-radius: 24px;
+            padding: 44px 38px;
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             position: relative;
-            z-index: 1;
-            box-shadow:
-                0 25px 60px rgba(0,0,0,0.5),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-            animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+            z-index: 10;
+            box-shadow: 
+                0 20px 45px -10px rgba(15, 23, 42, 0.08),
+                0 4px 6px -2px rgba(15, 23, 42, 0.03);
+            animation: cardAppear 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(24px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
-        /* Logo / Brand */
-        .brand {
+        /* Brand Header */
+        .auth-brand {
             text-align: center;
-            margin-bottom: 36px;
+            margin-bottom: 32px;
         }
-        .brand-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #3B82F6, #10B981);
-            border-radius: 16px;
+
+        .brand-icon-box {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 16px;
-            font-size: 24px;
-            box-shadow: 0 8px 24px var(--accent-glow);
-        }
-        .brand h1 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #F1F5F9, #94A3B8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .brand p {
-            font-size: 13px;
-            color: var(--muted);
-            margin-top: 4px;
+            color: #FFFFFF;
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
         }
 
-        /* Form */
+        .brand-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .brand-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: #EFF6FF;
+            color: #2563EB;
+            border: 1px solid #BFDBFE;
+            letter-spacing: 0.04em;
+        }
+
+        .brand-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* Form elements */
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--muted);
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.05em;
             margin-bottom: 8px;
         }
-        input[type="email"],
-        input[type="password"],
-        input[type="text"] {
-            width: 100%;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
         }
-        input:focus {
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            width: 17px;
+            height: 17px;
+            pointer-events: none;
+        }
+
+        .auth-input {
+            width: 100%;
+            background: var(--surface-elevated);
+            border: 1px solid #CBD5E1;
+            color: var(--text);
+            padding: 12px 14px 12px 42px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .auth-input:focus {
+            background: #FFFFFF;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-glow);
         }
-        input::placeholder { color: #374151; }
 
-        /* Error message */
-        .error-box {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.3);
-            border-radius: 10px;
+        .auth-input::placeholder {
+            color: #94A3B8;
+        }
+
+        .error-banner {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 12px;
             padding: 12px 16px;
             font-size: 13px;
-            color: #FCA5A5;
+            color: #991B1B;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        /* Validation errors */
-        .field-error {
+        .field-error-text {
             font-size: 12px;
-            color: #FCA5A5;
+            color: #DC2626;
             margin-top: 6px;
+            font-weight: 600;
         }
 
-        /* Remember me */
-        .remember {
+        .remember-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 9px;
             margin-bottom: 24px;
             cursor: pointer;
+            user-select: none;
         }
-        .remember input[type="checkbox"] {
+
+        .remember-row input[type="checkbox"] {
             width: 16px;
             height: 16px;
             accent-color: var(--accent);
             cursor: pointer;
-        }
-        .remember span {
-            font-size: 13px;
-            color: var(--muted);
+            border-radius: 4px;
         }
 
-        /* Submit button */
-        .btn-login {
+        .remember-row span {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .btn-submit {
             width: 100%;
-            background: linear-gradient(135deg, #3B82F6, #2563EB);
-            color: white;
+            background: #2563EB;
+            color: #FFFFFF;
             border: none;
             padding: 13px 24px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: 600;
-            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 14px rgba(59,130,246,0.35);
-            position: relative;
-            overflow: hidden;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .btn-login::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0.1));
-            opacity: 0;
-            transition: opacity 0.2s;
+
+        .btn-text {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .btn-login:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(59,130,246,0.45);
+
+        [wire\:loading], [wire\:loading\.delay], [wire\:loading\.flex] {
+            display: none !important;
         }
-        .btn-login:hover::after { opacity: 1; }
-        .btn-login:active { transform: translateY(0); }
-        .btn-login:disabled {
+
+        .btn-submit:hover {
+            background: #1D4ED8;
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        /* Loading spinner */
-        .spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+        .spinner-icon {
+            animation: spin 0.8s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Footer */
-        .login-footer {
+        .auth-footer {
             text-align: center;
-            margin-top: 28px;
-            font-size: 12px;
-            color: var(--muted);
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 11.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
         }
-        .login-footer strong { color: #4B5563; }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <!-- Brand -->
-        <div class="brand">
-            <div class="brand-icon">⚡</div>
-            <h1>Miltex EAJE</h1>
-            <p>Analyse des Journaux Électroniques</p>
+    <div class="ambient-grid"></div>
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <div class="auth-card">
+        <div class="auth-brand">
+            <div class="brand-icon-box">
+                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h1 class="brand-title">
+                MILTEX
+                <span class="brand-badge">EAJE</span>
+            </h1>
+            <p class="brand-subtitle">Analyse et Audit des Journaux Électroniques</p>
         </div>
 
         {{ $slot }}
 
-        <div class="login-footer">
-            Système réservé aux utilisateurs autorisés<br>
-            <strong>© {{ date('Y') }} Miltex SARL</strong>
+        <div class="auth-footer">
+            Système réservé aux opérateurs et auditeurs autorisés<br>
+            © {{ date('Y') }} Miltex SARL · Plateforme de conformité fiscale
         </div>
     </div>
 

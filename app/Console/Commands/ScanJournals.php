@@ -55,7 +55,7 @@ class ScanJournals extends Command
             // Try to detect device from filename (NID-based naming convention)
             $device = $this->resolveDeviceFromFilename(basename($filePath));
             if (!$device) {
-                $this->warn("  ⚠  Aucun DEF trouvé pour : " . basename($filePath) . " — ignoré");
+                $this->warn("  [ATTENTION] Aucun DEF trouvé pour : " . basename($filePath) . " — ignoré");
                 $skipped++;
                 continue;
             }
@@ -81,7 +81,7 @@ class ScanJournals extends Command
         try {
             $journal = $parser->parseFile($filePath, $originalName, $deviceId);
             $this->info(sprintf(
-                "  ✓ Importé : %d ventes | %d avoirs | %d annulées — CA TTC : %s %s",
+                "  [SUCCÈS] Importé : %d ventes | %d avoirs | %d annulées — CA TTC : %s %s",
                 $journal->total_invoices,
                 $journal->total_credits,
                 $journal->total_cancelled,
@@ -94,10 +94,10 @@ class ScanJournals extends Command
                 $this->warn("  → Déjà importé : $originalName");
                 return 'skipped';
             }
-            $this->error("  ✗ Erreur : " . $e->getMessage());
+            $this->error("  [ERREUR] : " . $e->getMessage());
             return 'error';
         } catch (\Exception $e) {
-            $this->error("  ✗ Erreur inattendue : " . $e->getMessage());
+            $this->error("  [ERREUR] inattendue : " . $e->getMessage());
             return 'error';
         }
     }

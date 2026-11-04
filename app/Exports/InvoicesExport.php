@@ -17,20 +17,28 @@ class InvoicesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
 {
     public function __construct(
         private readonly ?int    $journalId = null,
-        private readonly ?string $type   = null,   // 'sale' | 'credit_note' | 'cancelled' | null (all)
-        private readonly ?string $from   = null,
-        private readonly ?string $to     = null,
+        private readonly ?string $type = null,   // 'sale' | 'credit_note' | 'cancelled' | null (all)
+        private readonly ?string $from = null,
+        private readonly ?string $to = null,
         private readonly ?int    $pointOfSaleId = null,
+        private readonly ?int    $deviceId = null,
+        private readonly ?string $paymentMode = null,
+        private readonly ?string $mcfFilter = null, // 'with_error' | 'without_error' | null
     ) {}
 
     public function title(): string
     {
-        return 'Transactions';
+        return match ($this->type) {
+            'sale'        => 'Ventes',
+            'credit_note' => 'Avoirs',
+            'cancelled'   => 'Annulations',
+            default       => 'Transactions',
+        };
     }
 
     public function query()
     {
-        $q = Invoice::with('journal.device.pointOfSale')
+        $q = Invoice::with(['journal.device.pointOfSale'])
             ->orderBy('date_time');
 
         if ($this->journalId) {
@@ -41,11 +49,33 @@ class InvoicesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             });
         }
 
-        if ($this->type) {
+        if ($this->deviceId) {
+            $q->whereHas('journal', function ($jq) {
+                $jq->where('device_id', $this->deviceId);
+            });
+        }
+
+        if ($this->type && $this->type !== 'all') {
             $q->where('type', $this->type);
         }
-        if ($this->from && $this->to) {
-            $q->whereBetween('date_time', [$this->from, $this->to]);
+
+        if ($this->from) {
+            $fromStr = strlen($this->from) === 10 ? $this->from . ' 00:00:00' : $this->from;
+            $q->where('date_time', '>=', $fromStr);
+        }
+        if ($this->to) {
+            $toStr = strlen($this->to) === 10 ? $this->to . ' 23:59:59' : $this->to;
+            $q->where('date_time', '<=', $toStr);
+        }
+
+        if ($this->paymentMode && $this->paymentMode !== 'all') {
+            $q->where('payment_mode', 'LIKE', '%' . $this->paymentMode . '%');
+        }
+
+        if ($this->mcfFilter === 'with_error') {
+            $q->where('has_mcf_error', true);
+        } elseif ($this->mcfFilter === 'without_error') {
+            $q->where('has_mcf_error', false);
         }
 
         return $q;
@@ -54,6 +84,8 @@ class InvoicesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
     public function headings(): array
     {
         return [
+            'Point de Vente',
+            'Dispositif DEF (NID)',
             'N° Facture',
             'Type',
             'Date & Heure',
@@ -75,6 +107,8 @@ class InvoicesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
     public function map($invoice): array
     {
         return [
+            $invoice->journal?->device?->pointOfSale?->name ?? '—',
+            $invoice->journal?->device?->nid ?? '—',
             $invoice->invoice_no,
             match ($invoice->type) {
                 'sale'        => 'Vente',
@@ -86,13 +120,13 @@ class InvoicesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             $invoice->z_number,
             $invoice->serial_number,
             $invoice->vendeur,
-            $invoice->buyer_name,
-            $invoice->buyer_id,
+            $invoice->buyer_name ?? 'Client Anonyme',
+            $invoice->buyer_id ?? '—',
             number_format($invoice->total_ht, 2, ',', ' '),
             number_format($invoice->total_tva, 2, ',', ' '),
             number_format($invoice->total_ttc, 2, ',', ' '),
             $invoice->payment_mode ?? '—',
-            $invoice->code_def,
+            $invoice->code_def ?? '—',
             $invoice->compteur_brut,
             $invoice->has_mcf_error ? 'Oui' : 'Non',
         ];

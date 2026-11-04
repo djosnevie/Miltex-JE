@@ -80,5 +80,27 @@ Route::middleware(['auth', 'role'])->group(function () {
             ->name('pos.full.excel');
         Route::get('/pdv/tva/{posId}/excel', [ExportController::class, 'posTvaDetailedExcel'])
             ->name('pos.tva.excel');
+        Route::get('/pdv/conformite/{posId}/pdf', [ExportController::class, 'posCompliancePdf'])
+            ->name('pos.compliance.pdf');
+        Route::get('/pdv/tva/{posId}/pdf', [ExportController::class, 'posTvaSummaryPdf'])
+            ->name('pos.tva.pdf');
+        Route::get('/pdv/tva/{posId}/pdf-journalier', [ExportController::class, 'posTvaDailyPdf'])
+            ->name('pos.tva.daily.pdf');
+
+        // ── Global Exports (Tous les PDV / Consolidé National) ─────────────
+        Route::get('/global/transactions/{type?}', [ExportController::class, 'globalInvoicesExcel'])
+            ->name('global.invoices.excel');
+        Route::get('/global/articles', [ExportController::class, 'globalArticlesExcel'])
+            ->name('global.articles.excel');
+        Route::get('/global/complet', [ExportController::class, 'globalFullReportExcel'])
+            ->name('global.full.excel');
+        Route::get('/global/tva/excel', [ExportController::class, 'globalTvaDetailedExcel'])
+            ->name('global.tva.excel');
+        Route::get('/global/conformite/pdf', [ExportController::class, 'globalCompliancePdf'])
+            ->name('global.compliance.pdf');
+        Route::get('/global/tva/pdf', [ExportController::class, 'globalTvaSummaryPdf'])
+            ->name('global.tva.pdf');
+        Route::get('/global/tva/pdf-journalier', [ExportController::class, 'globalTvaDailyPdf'])
+            ->name('global.tva.daily.pdf');
     });
 });

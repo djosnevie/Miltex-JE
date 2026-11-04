@@ -16,8 +16,11 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class TvaDetailedExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 {
     public function __construct(
-        private readonly ?int $journalId = null,
-        private readonly ?int $pointOfSaleId = null,
+        private readonly ?int    $journalId = null,
+        private readonly ?int    $pointOfSaleId = null,
+        private readonly ?string $from = null,
+        private readonly ?string $to = null,
+        private readonly ?int    $deviceId = null,
     ) {}
 
     public function title(): string
@@ -27,9 +30,7 @@ class TvaDetailedExport implements FromQuery, WithHeadings, WithMapping, WithSty
 
     public function query()
     {
-        // For TVA declaration, we only include sales and credit notes
-        // as cancelled invoices do not carry tax liability.
-        $q = Invoice::with('journal')
+        $q = Invoice::with(['journal.device.pointOfSale'])
             ->whereIn('type', ['sale', 'credit_note'])
             ->orderBy('date_time');
 
@@ -41,21 +42,38 @@ class TvaDetailedExport implements FromQuery, WithHeadings, WithMapping, WithSty
             });
         }
 
+        if ($this->deviceId) {
+            $q->whereHas('journal', function ($jq) {
+                $jq->where('device_id', $this->deviceId);
+            });
+        }
+
+        if ($this->from) {
+            $fromStr = strlen($this->from) === 10 ? $this->from . ' 00:00:00' : $this->from;
+            $q->where('date_time', '>=', $fromStr);
+        }
+        if ($this->to) {
+            $toStr = strlen($this->to) === 10 ? $this->to . ' 23:59:59' : $this->to;
+            $q->where('date_time', '<=', $toStr);
+        }
+
         return $q;
     }
 
     public function headings(): array
     {
         return [
+            'Point de Vente',
+            'Dispositif DEF (NID)',
             'N° Facture',
             'Type Transaction',
             'Date & Heure',
             'Client',
             'NIF Client',
-            'Base Imposable (HT)',
+            'Base Imposable HT (CDF)',
             'Taux TVA',
-            'TVA Collectée / Déduite',
-            'Montant TTC',
+            'TVA Collectée / Déduite (CDF)',
+            'Montant TTC (CDF)',
             'Signature DGI (Code DEF)',
         ];
     }
@@ -65,6 +83,8 @@ class TvaDetailedExport implements FromQuery, WithHeadings, WithMapping, WithSty
         $coefficient = $invoice->type === 'credit_note' ? -1 : 1;
 
         return [
+            $invoice->journal?->device?->pointOfSale?->name ?? '—',
+            $invoice->journal?->device?->nid ?? '—',
             $invoice->invoice_no,
             $invoice->type === 'sale' ? 'Vente (Collectée)' : 'Avoir (Déduite)',
             $invoice->date_time?->format('d/m/Y H:i:s'),
@@ -85,7 +105,7 @@ class TvaDetailedExport implements FromQuery, WithHeadings, WithMapping, WithSty
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
                 'fill' => [
                     'fillType'   => Fill::FILL_SOLID,
-                    'startColor' => ['argb' => 'FF1E3A5F'], // Navy Blue
+                    'startColor' => ['argb' => 'FF1E3A5F'],
                 ],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],

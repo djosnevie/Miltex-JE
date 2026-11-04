@@ -100,9 +100,9 @@ class User extends Authenticatable
     public function roleBadge(): string
     {
         return match ($this->role) {
-            'super_admin' => '⭐ Super Admin',
-            'admin'       => '🔧 Admin',
-            'analyst'     => '👁 Analyste',
+            'super_admin' => 'Super Admin',
+            'admin'       => 'Admin',
+            'analyst'     => 'Analyste',
             default       => $this->role,
         };
     }

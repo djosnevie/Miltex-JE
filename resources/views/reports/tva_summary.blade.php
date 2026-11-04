@@ -26,7 +26,7 @@
             @if(file_exists(storage_path('app/public/logo.png')))
                 <img src="{{ storage_path('app/public/logo.png') }}" style="height: 48px; display: block;" alt="Miltex Group">
             @else
-                <span style="font-size: 16px; font-weight: bold; color: #0A0537;">⚡ Miltex Group</span>
+                <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px; color: #0A0537;">MILTEX GROUP</span>
             @endif
         </td>
         <td style="width: 60%; text-align: right; padding-bottom: 10px; vertical-align: middle; line-height: 1.4; color: #0A0537;">
