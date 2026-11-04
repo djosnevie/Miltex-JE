@@ -174,38 +174,109 @@
             position: relative;
             display: flex;
             align-items: center;
+            width: 100%;
         }
 
         .input-icon {
             position: absolute;
             left: 14px;
-            color: var(--text-muted);
-            width: 17px;
-            height: 17px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748B;
+            width: 18px;
+            height: 18px;
             pointer-events: none;
+            z-index: 5;
+            transition: color 0.18s ease;
         }
 
+        .input-wrap:focus-within .input-icon {
+            color: #2563EB;
+        }
+
+        .auth-card input.auth-input,
+        .input-wrap input.auth-input,
         .auth-input {
-            width: 100%;
-            background: var(--surface-elevated);
-            border: 1px solid #CBD5E1;
-            color: var(--text);
-            padding: 12px 14px 12px 42px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            transition: all 0.2s ease;
+            width: 100% !important;
+            height: 48px !important;
+            background: #FFFFFF !important;
+            border: 1.5px solid #CBD5E1 !important;
+            color: #0F172A !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            padding-left: 44px !important;
+            padding-right: 14px !important;
+            border-radius: 12px !important;
+            font-size: 14.5px !important;
+            font-weight: 500 !important;
+            font-family: inherit !important;
+            outline: none !important;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+            line-height: normal !important;
         }
 
+        .auth-card input.auth-input-password,
+        .input-wrap input.auth-input-password {
+            padding-right: 44px !important;
+        }
+
+        .auth-card input.auth-input:focus,
+        .input-wrap input.auth-input:focus,
         .auth-input:focus {
-            background: #FFFFFF;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: #FFFFFF !important;
+            border-color: #2563EB !important;
+            box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15) !important;
         }
 
+        .auth-card input.auth-input::placeholder,
         .auth-input::placeholder {
-            color: #94A3B8;
+            color: #94A3B8 !important;
+            font-weight: 400 !important;
+        }
+
+        /* Password toggle button */
+        .password-toggle-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: none;
+            color: #64748B;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 5;
+            transition: color 0.15s ease, background 0.15s ease;
+            padding: 0;
+        }
+
+        .password-toggle-btn:hover {
+            color: #0F172A;
+            background: #F1F5F9;
+        }
+
+        /* Chrome / Safari / Edge autofill fix */
+        .auth-card input:-webkit-autofill,
+        .auth-card input:-webkit-autofill:hover, 
+        .auth-card input:-webkit-autofill:focus, 
+        .auth-card input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+            -webkit-text-fill-color: #0F172A !important;
+            font-size: 14.5px !important;
+            font-weight: 500 !important;
+            font-family: inherit !important;
+            border-radius: 12px !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        [x-cloak] {
+            display: none !important;
         }
 
         .error-banner {

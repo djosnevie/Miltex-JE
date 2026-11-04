@@ -331,7 +331,7 @@ body {
 }
 
 /* ── Form Inputs & Selects ───────────────────── */
-.form-input, .form-select, select, input[type="text"], input[type="email"], input[type="password"], textarea {
+.form-input, .form-select, select, input[type="text"]:not(.auth-input), input[type="email"]:not(.auth-input), input[type="password"]:not(.auth-input), textarea {
     background: #FFFFFF;
     border: 1px solid var(--border-light);
     color: var(--text-main);
@@ -343,7 +343,7 @@ body {
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.form-input:focus, .form-select:focus, select:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus {
+.form-input:focus, .form-select:focus, select:focus, input[type="text"]:not(.auth-input):focus, input[type="email"]:not(.auth-input):focus, input[type="password"]:not(.auth-input):focus, textarea:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-glow);
 }
