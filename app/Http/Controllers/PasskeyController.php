@@ -71,8 +71,9 @@ class PasskeyController extends Controller
                 ],
             ]);
         } catch (Throwable $e) {
-            Log::error('Erreur Passkey register: ' . $e->getMessage());
-            return response()->json(['error' => 'Échec de l\'enregistrement de la clé biométrique : ' . $e->getMessage()], 422);
+            $msg = mb_convert_encoding($e->getMessage(), 'UTF-8', 'UTF-8');
+            Log::error('Erreur Passkey register: ' . $msg);
+            return response()->json(['error' => 'Échec de l\'enregistrement de la clé biométrique : ' . $msg], 422);
         }
     }
 
@@ -141,8 +142,9 @@ class PasskeyController extends Controller
                 ],
             ]);
         } catch (Throwable $e) {
-            Log::error('Erreur Passkey login: ' . $e->getMessage());
-            return response()->json(['error' => 'Échec de la validation biométrique : ' . $e->getMessage()], 422);
+            $msg = mb_convert_encoding($e->getMessage(), 'UTF-8', 'UTF-8');
+            Log::error('Erreur Passkey login: ' . $msg);
+            return response()->json(['error' => 'Échec de la validation biométrique : ' . $msg], 422);
         }
     }
 

@@ -95,11 +95,29 @@ class WebAuthnService
         // Convert binary credentialId to Base64Url string to store safely in database
         $credentialIdBase64Url = rtrim(strtr(base64_encode($data->credentialId), '+/', '-_'), '=');
 
+        // Format binary AAGUID (16 bytes) into standard UUID string format for MySQL utf8mb4 storage
+        $aaguid = null;
+        if (! empty($data->AAGUID)) {
+            $rawAaguid = $data->AAGUID instanceof ByteBuffer ? $data->AAGUID->getBinaryString() : (string) $data->AAGUID;
+            if (strlen($rawAaguid) === 16) {
+                $hex = bin2hex($rawAaguid);
+                $aaguid = sprintf('%s-%s-%s-%s-%s',
+                    substr($hex, 0, 8),
+                    substr($hex, 8, 4),
+                    substr($hex, 12, 4),
+                    substr($hex, 16, 4),
+                    substr($hex, 20, 12)
+                );
+            } else {
+                $aaguid = bin2hex($rawAaguid);
+            }
+        }
+
         return $user->passkeys()->create([
             'name'                  => $deviceName,
             'credential_id'         => $credentialIdBase64Url,
             'credential_public_key' => $data->credentialPublicKey,
-            'aaguid'                => $data->AAGUID ?? null,
+            'aaguid'                => $aaguid,
             'signature_counter'     => $data->signatureCounter ?? 0,
             'device_type'           => $deviceType,
             'last_used_at'          => now(),
