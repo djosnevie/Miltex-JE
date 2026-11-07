@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Miltex EAJE') }} — @yield('title', 'Tableau de Bord')</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -334,21 +335,41 @@
                 Utilisateurs
             </a>
             @endif
+
+            @if(auth()->user()->isSuperAdmin())
+            <div class="nav-section" style="color: #D97706; display: flex; align-items: center; justify-content: space-between; margin-top: 18px;">
+                <span>Super Administration</span>
+                <span style="background: #FEF3C7; color: #92400E; font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid #FDE68A;">GLOBAL</span>
+            </div>
+            <a href="{{ route('superadmin.index') }}" class="nav-item {{ request()->routeIs('superadmin.*') ? 'active' : '' }}" style="{{ request()->routeIs('superadmin.*') ? 'border-color: #D97706; color: #B45309; background: #FFFBEB;' : '' }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: #D97706;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <span>Console SuperAdmin</span>
+            </a>
+            @endif
+
+            <div class="nav-section" style="margin-top: 18px;">Mon Compte</div>
+            <a href="{{ route('profile.show') }}" class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Mon Profil</span>
+            </a>
         @endauth
     </nav>
 
     {{-- User Profile Footer --}}
     @auth
     <div class="sidebar-footer">
-        <div class="user-card">
-            <div class="user-avatar">
+        <a href="{{ route('profile.show') }}" class="user-card" style="text-decoration: none; padding: 6px; border-radius: 10px; margin: -6px -6px 10px; transition: background 0.15s ease;" onmouseover="this.style.background='rgba(0,0,0,0.03)'" onmouseout="this.style.background='transparent'">
+            <div class="user-avatar" style="{{ auth()->user()->isSuperAdmin() ? 'background: linear-gradient(135deg, #D97706 0%, #B45309 100%);' : '' }}">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
             <div style="overflow: hidden; flex: 1;">
                 <div style="font-size: 13px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ auth()->user()->name }}</div>
-                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">{{ auth()->user()->roleBadge() }}</div>
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+                    <span>{{ auth()->user()->roleBadge() }}</span>
+                    <span style="font-size: 10px; color: var(--primary, #2563EB); font-weight: 700;">Profil &rarr;</span>
+                </div>
             </div>
-        </div>
+        </a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="btn-logout">
@@ -369,6 +390,15 @@
             <h1 class="topbar-title">@yield('title', 'Tableau de Bord')</h1>
         </div>
         <div class="topbar-right">
+            @auth
+            @if(auth()->user()->isSuperAdmin())
+            <a href="{{ route('superadmin.index') }}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #92400E; background: #FEF3C7; border: 1px solid #FDE68A; padding: 5px 12px; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;" onmouseover="this.style.background='#FDE68A'" onmouseout="this.style.background='#FEF3C7'">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <span>Console SuperAdmin</span>
+            </a>
+            @endif
+            @endauth
+
             <div class="date-chip">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -376,15 +406,15 @@
                 <span>{{ now()->translatedFormat('d M Y') }}</span>
             </div>
             @auth
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{{ route('profile.show') }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 4px 8px; border-radius: 10px; transition: background 0.15s ease;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
                 <div style="text-align: right; line-height: 1.25;">
                     <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main);">{{ auth()->user()->name }}</div>
                     <div style="font-size: 10.5px; color: var(--text-muted); font-weight: 500;">{{ auth()->user()->roleBadge() }}</div>
                 </div>
-                <div class="user-avatar" style="width: 32px; height: 32px; font-size: 12px;">
+                <div class="user-avatar" style="width: 32px; height: 32px; font-size: 12px; {{ auth()->user()->isSuperAdmin() ? 'background: linear-gradient(135deg, #D97706 0%, #B45309 100%);' : '' }}">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
-            </div>
+            </a>
             @endauth
         </div>
     </header>

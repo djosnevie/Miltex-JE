@@ -3,17 +3,33 @@
 use App\Http\Controllers\ExportController;
 use App\Livewire\AnomaliesList;
 use App\Livewire\Auth\Login;
+use App\Livewire\Auth\TwoFactorChallenge;
 use App\Livewire\Dashboard;
 use App\Livewire\ExportsList;
 use App\Livewire\ImportJournal;
 use App\Livewire\PointsOfSaleManagement;
+use App\Livewire\SuperAdminHub;
 use App\Livewire\TransactionsList;
 use App\Livewire\UserManagement;
+use App\Livewire\UserProfile;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\PasskeyController;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth ───────────────────────────────────────────────────────────────────
 Route::get('/login', Login::class)->name('login')->middleware('guest');
+Route::get('/two-factor-challenge', TwoFactorChallenge::class)->name('2fa.challenge')->middleware('guest');
+
+// ── Passkeys / WebAuthn Biometrics ─────────────────────────────────────────
+Route::post('/passkeys/login-options', [PasskeyController::class, 'loginOptions'])->name('passkeys.login.options');
+Route::post('/passkeys/login',         [PasskeyController::class, 'login'])->name('passkeys.login');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/passkeys/register-options', [PasskeyController::class, 'registerOptions'])->name('passkeys.register.options');
+    Route::post('/passkeys/register',        [PasskeyController::class, 'register'])->name('passkeys.register');
+    Route::delete('/passkeys/{passkey}',     [PasskeyController::class, 'destroy'])->name('passkeys.destroy');
+});
+
 Route::post('/logout', function () {
     Auth::logout();
     request()->session()->invalidate();
@@ -27,6 +43,14 @@ Route::middleware(['auth', 'role'])->group(function () {
     // ── Dashboard ──────────────────────────────────────────────────────────
     Route::get('/',          Dashboard::class)->name('dashboard');
     Route::get('/dashboard', Dashboard::class);
+
+    // ── Profil Utilisateur (tous rôles) ────────────────────────────────────
+    Route::get('/profil', UserProfile::class)->name('profile.show');
+
+    // ── SuperAdmin Hub (super_admin seulement) ─────────────────────────────
+    Route::get('/super-admin', SuperAdminHub::class)
+        ->name('superadmin.index')
+        ->middleware('role:super_admin');
 
     // ── Transactions (lecture — tous rôles) ────────────────────────────────
     Route::get('/transactions', TransactionsList::class)->name('transactions.index');
