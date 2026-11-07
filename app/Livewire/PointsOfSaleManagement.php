@@ -82,6 +82,14 @@ class PointsOfSaleManagement extends Component
 
     public function openCreatePos(): void
     {
+        $company = Company::find($this->posCompanyId) ?? Company::first();
+        if ($company && ! $company->canCreatePointOfSale() && ! Auth::user()?->isSuperAdmin()) {
+            $max = $company->maxPointsOfSale();
+            $curr = $company->currentPointsOfSaleCount();
+            session()->flash('error', "Quota de points de vente atteint ({$curr} / {$max} autorisés pour {$company->name}). Veuillez contacter le SuperAdmin pour augmenter le quota de création.");
+            return;
+        }
+
         $this->resetPosForm();
         $this->posIsEditing = false;
         $this->posEditingId = null;
@@ -110,8 +118,22 @@ class PointsOfSaleManagement extends Component
     {
         $this->validateOnly('posName');
 
+        $targetCompanyId = $this->posCompanyId ?? Company::first()?->id;
+
+        // Strict Quota Enforcement for non-superadmins
+        if (! $this->posIsEditing) {
+            $company = Company::find($targetCompanyId);
+            if ($company && ! $company->canCreatePointOfSale() && ! Auth::user()?->isSuperAdmin()) {
+                $max = $company->maxPointsOfSale();
+                $curr = $company->currentPointsOfSaleCount();
+                session()->flash('error', "Création bloquée : quota de points de vente atteint ({$curr} / {$max} pour {$company->name}). Contactez un SuperAdmin pour augmenter votre quota.");
+                $this->showPosModal = false;
+                return;
+            }
+        }
+
         $data = [
-            'company_id'          => $this->posCompanyId ?? Company::first()?->id,
+            'company_id'          => $targetCompanyId,
             'name'                => $this->posName,
             'location_identifier' => $this->posLocationId ?: null,
             'city'                => $this->posCity ?: null,
@@ -272,9 +294,25 @@ class PointsOfSaleManagement extends Component
             ->orderBy('name')
             ->get();
 
-        $companies = Company::orderBy('name')->get();
+        $companies = Company::with('tenant')->orderBy('name')->get();
+        $currentCompany = Company::find($this->posCompanyId) ?? Company::first();
 
-        return view('livewire.points-of-sale-management', compact('pointsOfSale', 'companies'))
+        $currentPosCount = $currentCompany ? $currentCompany->currentPointsOfSaleCount() : $pointsOfSale->count();
+        $maxPosAllowed   = $currentCompany ? $currentCompany->maxPointsOfSale() : null;
+        $quotaPercentage = ($maxPosAllowed && $maxPosAllowed > 0) ? min(100, (int) round(($currentPosCount / $maxPosAllowed) * 100)) : 0;
+        $isQuotaReached  = ($maxPosAllowed !== null && $currentPosCount >= $maxPosAllowed);
+
+        $data = array_merge(get_object_vars($this), compact(
+            'pointsOfSale',
+            'companies',
+            'currentCompany',
+            'currentPosCount',
+            'maxPosAllowed',
+            'quotaPercentage',
+            'isQuotaReached'
+        ));
+
+        return view('livewire.points-of-sale-management', $data)
             ->layout('layouts.app', ['title' => 'Points de Vente']);
     }
 }

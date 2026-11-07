@@ -11,7 +11,16 @@
         </div>
     @endif
 
-    {{-- Toolbar --}}
+    @if(session('error'))
+        <div class="alert alert-danger" style="margin-bottom: 24px; background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 14px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-size: 13.5px; font-weight: 500;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
+    {{-- Toolbar & Quota Status --}}
     <div class="card" style="margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 240px;">
@@ -24,13 +33,39 @@
                         style="width: 100%; background: var(--surface-input); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 9px 12px 9px 36px; border-radius: 9px; font-size: 13px; outline: none;">
                 </div>
             </div>
-            <div style="margin-top: 22px;">
-                <button wire:click="openCreatePos" class="btn btn-primary">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Nouveau Point de Vente</span>
-                </button>
+
+            <div style="display: flex; align-items: center; gap: 14px; margin-top: 22px; flex-wrap: wrap;">
+                {{-- Quota Badge / Indicator --}}
+                <div style="display: flex; align-items: center; gap: 10px; background: #F8FAFC; border: 1px solid var(--border-subtle); padding: 7px 14px; border-radius: 9px;">
+                    <div style="text-align: right;">
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Quota Points de Vente</div>
+                        <div style="font-size: 12.5px; font-weight: 700; color: {{ $isQuotaReached ? '#DC2626' : 'var(--text-main)' }};">
+                            {{ $currentPosCount }} / {{ $maxPosAllowed ?? 'Illimité' }}
+                            @if($maxPosAllowed)
+                                <span style="font-size: 11px; font-weight: 600; color: {{ $isQuotaReached ? '#DC2626' : '#059669' }};">({{ $quotaPercentage }}%)</span>
+                            @endif
+                        </div>
+                    </div>
+                    @if($maxPosAllowed)
+                        <div style="width: 44px; height: 6px; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
+                            <div style="height: 100%; width: {{ $quotaPercentage }}%; background: {{ $isQuotaReached ? '#DC2626' : ($quotaPercentage > 80 ? '#D97706' : '#2563EB') }}; border-radius: 9999px;"></div>
+                        </div>
+                    @endif
+                </div>
+
+                @if($isQuotaReached && !auth()->user()->isSuperAdmin())
+                    <button class="btn btn-secondary" disabled title="Quota maximum atteint. Contactez le SuperAdmin pour augmenter votre capacité." style="opacity: 0.65; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>Quota Atteint</span>
+                    </button>
+                @else
+                    <button wire:click="openCreatePos" class="btn btn-primary">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Nouveau Point de Vente</span>
+                    </button>
+                @endif
             </div>
         </div>
     </div>
